@@ -33,6 +33,7 @@
             ],
             "styles": [
               "src/styles.scss",
+              "src/output.scss",
                "node_modules/notyf/notyf.min.css"
             ],
             "scripts": [],
