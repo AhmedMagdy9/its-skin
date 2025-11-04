@@ -1,0 +1,63 @@
+<!-- Wrapper Sidebar + Mobile Navbar -->
+<div class="flex fixed w-full lg:w-64 z-10 flex-col lg:flex-row">
+
+  <!-- Sidebar للـ desktop -->
+  <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-600 to-rose-400 text-white h-screen p-4 shadow-lg transition-all duration-300">
+    
+    <!-- Logo -->
+    <div class="p-4 text-center border-b border-white/20 mb-6">
+      <span class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 via-pink-400 to-rose-200 drop-shadow-md">
+           It's Skin
+      </span>
+    </div>
+
+    <!-- Links -->
+    <nav class="flex-1 space-y-3 text-sm md:text-base">
+      <a routerLinkActive="bg-white/15" routerLink="/home" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        🏠 <span>Home</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/cart" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        🛒 <span>Cart</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/orders" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        ⏳ <span>Pending Orders</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/deleteorder" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        ✅ <span>Completed Orders</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/addproduct" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        ➕ <span>Add Product</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/categorise" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        🗂️ <span>Categories</span>
+      </a>
+      <a routerLinkActive="bg-white/15" routerLink="/dashbord" class="flex items-center gap-3 p-2 rounded-lg hover:bg-white/15 transition">
+        📊 <span>Dashboard</span>
+      </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="p-2 text-center border-t border-white/20 mt-6 text-sm">
+      its skin © 2025
+    </div>
+  </aside>
+
+  <!-- Navbar Mobile -->
+  <div class="lg:hidden w-full bg-gradient-to-b from-gray-600 to-rose-400 text-white p-3 flex justify-between items-center shadow-lg">
+    <span class="text-xl font-bold tracking-wider">It's Skin</span>
+    <button (click)="mobileMenuOpen = !mobileMenuOpen" class="p-2 rounded-lg hover:bg-white/15 transition">☰</button>
+  </div>
+
+  <!-- Mobile menu dropdown -->
+   @if (mobileMenuOpen) {
+  <div class="lg:hidden w-full bg-rose-500 text-white shadow-lg">
+    <a routerLinkActive="bg-white/15" routerLink="/home" class="block p-2 hover:bg-white/15 transition">🏠 Home</a>
+    <a routerLinkActive="bg-white/15" routerLink="/cart" class="block p-2 hover:bg-white/15 transition">🛒 Cart</a>
+    <a routerLinkActive="bg-white/15" routerLink="/orders" class="block p-2 hover:bg-white/15 transition">⏳ Pending Orders</a>
+    <a routerLinkActive="bg-white/15" routerLink="/deleteorder" class="block p-2 hover:bg-white/15 transition">✅ Completed Orders</a>
+    <a routerLinkActive="bg-white/15" routerLink="/addproduct" class="block p-2 hover:bg-white/15 transition">➕ Add Product</a>
+    <a routerLinkActive="bg-white/15" routerLink="/categorise" class="block p-2 hover:bg-white/15 transition">🗂️ Categories</a>
+    <a routerLinkActive="bg-white/15" routerLink="/dashbord" class="block p-2 hover:bg-white/15 transition">📊 Dashboard</a>
+  </div>
+}
+</div>

@@ -1,0 +1,90 @@
+<div class=" bg-main py-10 px-6">
+  <h1 class="text-3xl font-bold text-center mb-8 text-blue-900">🛒 Cart</h1>
+
+  @if (cartItems.length === 0) {
+    <div class="text-center text-[#4A70A9]">
+      مفيش منتجات في الكارت دلوقتي 😅
+    </div>
+  }
+
+  @if (cartItems.length > 0) {
+    <div class="space-y-4">
+      @for  (item of cartItems; track item.id)  {
+        <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between">
+          <div>
+            <h2 class="font-semibold text-lg">{{ item.name }}</h2>
+            <p class="text-[#4A70A9]">السعر: {{ item.price }} EGP</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <input type="number" min="1" [value]="item.quantity" (change)="updateQuantity(item.id, $event)" class="w-16 border rounded px-2 text-center"/>
+            <button (click)="removeItem(item.id)" class="text-red-500 cursor-pointer hover:text-red-700">🗑️</button>
+          </div>
+        </div>
+      } <!-- نهاية ال @for -->
+
+      <div class="flex justify-between items-center mt-6 border-t pt-4">
+        <h2 class="text-xl font-bold">الإجمالي: {{ getTotal() }} EGP</h2>
+        <button (click)="clearCart()"  class="bg-[#4A70A9] cursor-pointer text-white px-4 py-2 rounded hover:bg-[#4A70A9]" >
+          تفريغ الكارت
+        </button>
+      </div>
+    </div>
+  } <!-- نهاية ال @if (cartItems.length > 0) -->
+</div>
+
+<div class=" flex items-center justify-center bg-main py-10 px-6">
+  <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-8 w-full max-w-md border border-rose-100">
+    <h2 class="text-2xl font-bold text-center text-[#4A70A9] mb-6">بيانات العميل</h2>
+
+    <form [formGroup]="orderForm" (ngSubmit)="submitOrder()" class="space-y-5">
+
+      <!-- 🧍 اسم العميل -->
+      <div>
+        <label class="block text-[#8FABD4] mb-2 font-medium">اسم العميل</label>
+        <input
+          type="text"
+          formControlName="customerName"
+          placeholder="اكتب اسمك الكامل"
+          class="w-full rounded-xl border border-rose-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none p-3 text-gray-700"
+        />
+        @if (orderForm.get('customerName')?.touched && orderForm.get('customerName')?.invalid) {
+          <p class="text-red-500 text-sm mt-1">الاسم مطلوب ويجب أن يكون 3 أحرف على الأقل</p>
+        }
+      </div>
+
+      <!-- 📞 رقم الهاتف -->
+      <div>
+        <label class="block text-[#8FABD4] mb-2 font-medium">رقم الهاتف</label>
+        <input
+          type="text"
+          formControlName="phone"
+          placeholder="01xxxxxxxxx"
+          class="w-full rounded-xl border border-rose-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none p-3 text-gray-700"
+        />
+        @if (orderForm.get('phone')?.touched && orderForm.get('phone')?.invalid) {
+          <p class="text-red-500 text-sm mt-1">برجاء إدخال رقم هاتف صحيح</p>
+        }
+      </div>
+
+      <!-- 🏠 العنوان -->
+      <div>
+        <label class="block text-[#8FABD4] mb-2 font-medium">العنوان</label>
+        <textarea
+          formControlName="address"
+          rows="3"
+          placeholder="اكتب عنوانك بالتفصيل"
+          class="w-full rounded-xl border border-rose-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none p-3 text-gray-700 resize-none"
+        ></textarea>
+        @if (orderForm.get('address')?.touched && orderForm.get('address')?.invalid) {
+          <p class="text-red-500 text-sm mt-1">العنوان مطلوب</p>
+        }
+      </div>
+
+      <!-- 🩷 الزر -->
+      <button type="submit" class="w-full cursor-pointer bg-[#8FABD4] text-white font-semibold py-3 rounded-xl shadow-md hover:bg-[#4A70A9] transition-all duration-200" >
+        تأكيد الطلب
+      </button>
+    </form>
+  </div>
+</div>

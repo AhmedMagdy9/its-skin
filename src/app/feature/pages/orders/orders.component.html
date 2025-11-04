@@ -1,0 +1,92 @@
+<div class="min-h-screen bg-main py-10 px-6">
+  <h1 class="text-4xl font-bold text-center text-blue-900 mb-10">My Orders</h1>
+
+  <div class="flex justify-center gap-6 mb-10">
+    <button (click)="activeTab = 'pending'" class="px-6 cursor-pointer py-2 rounded-xl text-white font-semibold shadow-md transition-all duration-300" [class.bg-[#4A70A9]]="activeTab === 'pending'" [class.bg-[#8FABD4]]="activeTab !== 'pending'" >
+      Pending Orders
+    </button>
+
+    <button (click)="activeTab = 'completed'" class="px-6 cursor-pointer py-2 rounded-xl text-white font-semibold shadow-md transition-all duration-300" [class.bg-[#4A70A9]]="activeTab === 'completed'" [class.bg-[#8FABD4]]="activeTab !== 'completed'" >
+      Completed Orders
+    </button>
+  </div>
+
+  <!-- ✅ Pending Orders -->
+  @if (activeTab === 'pending') {
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      @for (order of pendingOrders; track order.id) {
+        <div class="bg-white rounded-2xl shadow-lg p-5 border-t-4 border-rose-500 hover:scale-[1.02] transition-transform">
+         <div class="flex justify-end mb-2"><span class="text-xl cursor-pointer" (click)="deleteOrder(order)" >❌</span></div>
+
+          <div class="text-gray-600 mb-4 space-y-1">
+            <p><strong>👤</strong> {{ order.customerName }}</p>
+            <p><strong>📞</strong> {{ order.phone }}</p>
+            <p><strong>📍</strong> {{ order.address }}</p>
+          </div>
+
+          <div class="border-t border-gray-200 my-3"></div>
+
+          <div class="mb-3">
+            <p class="font-semibold text-gray-700 mb-2">🛍️ Items:</p>
+            <ul class="text-gray-600 text-sm list-disc list-inside space-y-1">
+              @for (item of order.items; track item.id) {
+                <li>{{ item.name }} × {{ item.quantity }}</li>
+              }
+            </ul>
+          </div>
+
+          <p class="text-lg font-semibold text-rose-600 mb-4">
+            Total: {{ order.totalPrice | currency:'EGP' }}
+          </p>
+
+          <button (click)="markAsCompleted(order.id)" class="w-full cursor-pointer py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-all"
+          >
+          TO Delevary
+          </button>
+        </div>
+      } @empty {
+        <p class="text-center text-gray-500 col-span-full">No pending orders 💤</p>
+      }
+    </div>
+  }
+
+  <!-- 🟩 Completed Orders -->
+  @if (activeTab === 'completed') {
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+     
+      @for (order of completedOrders; track order.id) {
+        <div class="bg-white rounded-2xl shadow-lg p-5 border-t-4 border-green-500 hover:scale-[1.02] transition-transform">
+         <div class="flex justify-end mb-2"><span class="text-xl cursor-pointer" (click)="deleteOrder(order)" >❌</span></div>
+
+          <div class="text-gray-600 mb-4 space-y-1">
+            <p><strong>👤</strong> {{ order.customerName }}</p>
+            <p><strong>📞</strong> {{ order.phone }}</p>
+            <p><strong>📍</strong> {{ order.address }}</p>
+          </div>
+
+          <div class="border-t border-gray-200 my-3"></div>
+
+          <div class="mb-3">
+            <p class="font-semibold text-gray-700 mb-2">🛍️ Items:</p>
+            <ul class="text-gray-600 text-sm list-disc list-inside space-y-1">
+              @for (item of order.items; track item.id) {
+                <li>{{ item.name }} × {{ item.quantity }}</li>
+              }
+            </ul>
+          </div>
+
+          <p class="text-lg font-semibold text-green-600 mb-4">
+            Total: {{ order.totalPrice | currency:'EGP' }}
+          </p>
+
+          <button (click)="complated(order)" class="w-full cursor-pointer py-2 rounded-lg bg-rose-500 text-white font-semibold hover:bg-rose-600 transition-all">
+            Complated Order ✅
+          </button>
+        </div>
+      } @empty {
+        <p class="text-center text-gray-500 col-span-full">No completed orders yet 🌿</p>
+      }
+    </div>
+  }
+</div>
+

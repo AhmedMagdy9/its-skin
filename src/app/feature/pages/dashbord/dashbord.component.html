@@ -1,0 +1,170 @@
+<div class="min-h-screen bg-main p-8">
+  <h1 class="text-4xl font-bold text-center mb-10 text-blue-900">Dashboard</h1>
+
+  <!-- الكروت -->
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-gray-500 font-medium">إجمالي الطلبات</h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">{{ totalOrders }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-gray-500 font-medium">طلبات معلقة</h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">{{ pendingOrders }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-gray-500 font-medium">طلبات مكتملة (قيد التسليم)</h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">{{ completedOrders }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-gray-500 font-medium">طلبات مكتملة فعليًا </h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">{{ deletedOrders }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center col-span-full lg:col-span-1">
+      <h2 class="text-gray-500 font-medium">عدد المنتجات</h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">{{ totalProducts }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center col-span-full lg:col-span-1">
+      <h2 class="text-gray-500 font-medium">إجمالي الأرباح </h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">
+        {{ totalRevenue | number }} جنيه
+      </p>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center col-span-full lg:col-span-1">
+      <h2 class="text-gray-500 font-medium">نسبة ارباح منتجات المخزن </h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">
+        {{ getProfitMarginPercent() }} %
+      </p>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow-md text-center col-span-full lg:col-span-1">
+      <h2 class="text-gray-500 font-medium">نسبة ارباح المنتجات  المباعة </h2>
+      <p class="text-4xl font-bold text-[#4A70A9] mt-2">
+        {{ getDeletedOrdersProfitPercentage() }} %
+      </p>
+    </div>
+  </div>
+
+  <!-- الرسم البياني -->
+  <div class="flex flex-col items-center mb-12">
+    <h2 class="text-2xl font-bold text-blue-900 mb-6">نسبة حالات الطلبات</h2>
+
+    <div class="relative w-64 h-64 rounded-full bg-gray-200 overflow-hidden shadow-inner">
+      <div
+        class="absolute top-0 left-0 w-full h-full origin-center rounded-full"
+        [style.backgroundImage]="
+          'conic-gradient(' +
+          '#facc15 ' + getPendingPercent() + '%, ' +
+          '#22c55e ' + (getPendingPercent() + getCompletedPercent()) + '%, ' +
+          '#4A70A9 ' + (getPendingPercent() + getCompletedPercent() + getDeletedPercent()) + '%, #f3f4f6 100%)'
+        "
+      ></div>
+
+      <div class="absolute inset-8 bg-white rounded-full flex items-center justify-center text-center">
+        @if (totalOrders > 0) {
+          <p class="text-lg font-semibold text-gray-600">
+            إجمالي {{ totalOrders }} طلب
+          </p>
+        } @else {
+          <p class="text-lg font-semibold text-gray-400">لا توجد طلبات</p>
+        }
+      </div>
+    </div>
+
+    <div class="flex justify-center mt-6 space-x-6 rtl:space-x-reverse">
+      <div class="flex items-center gap-2">
+        <span class="w-4 h-4 bg-yellow-400 rounded-full"></span>
+        <span>معلقة</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-4 h-4 bg-green-500 rounded-full"></span>
+        <span>قيد التسليم</span>
+      </div>
+     
+    </div>
+  </div>
+
+  <!-- المنتجات الأكثر مبيعًا -->
+  <div class="bg-white rounded-2xl shadow-lg p-6">
+    <h2 class="text-2xl font-bold text-[#4A70A9] mb-6 text-center">
+      🏆 أكثر المنتجات مبيعًا 
+    </h2>
+    <table class="w-full border-collapse text-center">
+      <thead>
+        <tr class="bg-rose-100 text-[#4A70A9]">
+          <th class="p-3">#</th>
+          <th class="p-3">المنتج</th>
+          <th class="p-3">الكمية المباعة</th>
+          <th class="p-3">الأرباح</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (topProducts.length > 0) {
+          @for (p of topProducts; track $index) {
+            <tr class="border-b border-gray-200 hover:bg-rose-50 transition">
+              <td class="p-3 font-medium">{{ $index + 1 }}</td>
+              <td class="p-3 font-semibold">{{ p.name }}</td>
+              <td class="p-3 text-[#4A70A9]">{{ p.sold }}</td>
+              <td class="p-3 text-[#4A70A9]">{{ p.revenue | number }} جنيه</td>
+            </tr>
+          }
+        } @else {
+          <tr>
+            <td colspan="4" class="p-5 text-gray-500 italic">
+              لا توجد بيانات بعد 
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+
+<div class=" bg-main p-8">
+  <h1 class="text-4xl font-bold text-center mb-10 text-blue-900">
+    💹 لوحة تحكم المبيعات الشهرية
+  </h1>
+
+  <!-- اختيار الشهر والسنة -->
+<div class="flex flex-wrap justify-center items-center gap-4 mb-10">
+<select [(ngModel)]="selectedMonth" class="border p-2 rounded-lg shadow">
+  @for (m of months; track $index) {
+    <option [value]="$index + 1">{{ m }}</option>
+  }
+</select>
+
+<select [(ngModel)]="selectedYear" class="border p-2 rounded-lg shadow">
+  @for (y of years; track $index) {
+    <option [value]="y">{{ y }}</option>
+  }
+</select>
+
+
+    <button (click)="filterByMonth()" class="bg-[#8FABD4] cursor-pointer text-white px-5 py-2 rounded-lg shadow hover:bg-[#4A70A9] transition">
+      عرض المبيعات
+    </button>
+  </div>
+
+  <!-- النتيجة -->
+  @if (filteredRevenue > 0 && filteredProfitPercentage > 0) {
+    <div class="text-center bg-white p-8 rounded-2xl shadow-lg max-w-md mx-auto">
+      <h2 class="text-2xl font-bold text-[#4A70A9] mb-2">📅 مبيعات الشهر المحدد</h2>
+      <p class="text-3xl font-extrabold text-[#4A70A9]">
+        {{ filteredRevenue | currency:'EGP':'symbol':'1.0-0' }}
+      </p>
+      <p class="text-3xl font-extrabold text-[#4A70A9]">
+        {{ filteredProfitPercentage | currency:'%':'symbol':'1.0-0' }}
+      </p>
+
+    </div>
+  } @else {
+    <p class="text-center text-gray-500 mt-10 text-lg italic">
+      لا توجد مبيعات في هذا الشهر.
+    </p>
+  }
+</div>
