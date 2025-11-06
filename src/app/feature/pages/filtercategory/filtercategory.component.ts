@@ -14,26 +14,32 @@ import { FormsModule } from '@angular/forms';
 export class FiltercategoryComponent {
 
   categories: string[] = [];
-  selectedCategory = '';
+  brands: string[] = [];
+  selectedCatOrBrand = '';
   filteredProducts: Product[] = [];
   private platformid = inject(PLATFORM_ID)
-
   constructor(private productService: ProductService) {}
+
 
   ngOnInit(): void {
    if (isPlatformBrowser(this.platformid)) {
-     // ✅ استرجاع الفئات من كل المنتجات (بدون تكرار)
+     // ✅ استرجاع الفئات من كل المنتجات 
     const allProducts = this.productService.getAll();
     this.categories = [...new Set(allProducts.map(p => p.category))];
+     // ✅ استرجاع الشركات من كل المنتجات 
+    const allProductsBrand = this.productService.getAll();
+    this.brands = [...new Set(allProductsBrand.map(p => p.brand))];
     
    }
   }
 
-  filterProducts(): void {
-    const allProducts = this.productService.getAll();
-    this.filteredProducts = allProducts.filter(
-      p => p.category === this.selectedCategory
-    );
-  }
+filterProducts(filterWord: string): void {
+  const allProducts = this.productService.getAll();
+  this.filteredProducts = allProducts.filter(p => p.category === filterWord || p.brand === filterWord);
+}
+
+
+
+
 
 }

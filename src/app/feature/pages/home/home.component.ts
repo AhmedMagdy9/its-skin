@@ -31,6 +31,8 @@ export class HomeComponent {
 
   loadProducts(): void {
     this.products = this.productService.getAll();
+    console.log( this.products)
+   
   }
 
  deleteProduct(id: string): void {
@@ -39,10 +41,8 @@ export class HomeComponent {
     this.notyf.error('Product Deleted successfully')
   }
 
-getExpiryColor(expiryDate: string): string {
+ getExpiryColor(expiryDate: string): string {
   const today = new Date();
-  // console.log( 'قبل' ,expiryDate)
-
   // لو التاريخ بالشكل dd/mm/yyyy نحوله ل yyyy-mm-dd
   if (expiryDate.includes('-')) {
     const [day, month, year] = expiryDate.split('-');
@@ -57,9 +57,9 @@ getExpiryColor(expiryDate: string): string {
   if (diffInDays < 0) return 'text-red-600'; // منتهي
   else if (diffInDays <= 60) return 'text-yellow-600'; // باقي أقل من شهرين
   else return 'text-green-600'; // سليم
-}
+ }
 
-addToCart(product: any) {
+ addToCart(product: any) {
   // ✅ 1. أضف المنتج للكارت
   this.cartService.addToCart(product);
 
@@ -79,6 +79,6 @@ addToCart(product: any) {
   this.loadProducts();
 
  
-}
+ }
 
 }

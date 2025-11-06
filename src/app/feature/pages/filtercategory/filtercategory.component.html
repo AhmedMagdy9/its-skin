@@ -1,24 +1,27 @@
-<div class="min-h-screen bg-main py-10 px-6">
+<div class=" min-h-screen bg-main py-20 lg:py-10 px-6">
   <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8">
     <h1 class="text-3xl font-bold text-center mb-8 text-[#4A70A9] flex items-center justify-center gap-2">
       <i class="fa-solid fa-filter text-2xl"></i>
-      Filter Products by Category
-    </h1>
-
+      Filter Products 
+      </h1>
     <!-- ✅ اختيار الفئة -->
     <div class="flex flex-col md:flex-row gap-4 mb-6 items-center justify-center">
       <select
-        [(ngModel)]="selectedCategory"
+        [(ngModel)]="selectedCatOrBrand"
         class="w-full md:w-1/2 border border-gray-300 rounded-lg py-2 px-4 focus:ring-2 focus:ring-rose-400 outline-none"
       >
         <option value="" disabled selected>اختر الفئة</option>
         @for (cat of categories; track cat) {
           <option [value]="cat">{{ cat }}</option>
         }
+        <option value="" disabled selected>اختر الشركة</option>
+        @for (brand of brands; track brand) {
+          <option [value]="brand">{{ brand }}</option>
+        }
       </select>
 
-      <button  (click)="filterProducts()"  [disabled]="!selectedCategory"  class="bg-[#8FABD4] cursor-pointer hover:bg-[#4A70A9] text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-        عرض المنتجات
+      <button  (click)="filterProducts(selectedCatOrBrand)"  [disabled]="!selectedCatOrBrand"  class="bg-[#8FABD4] cursor-pointer hover:bg-[#4A70A9] text-white px-6 py-2 rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+        عرض البحث
       </button>
     </div>
 
@@ -36,6 +39,9 @@
               <span class="font-medium">Category:</span> {{ product.category }}
             </p>
             <p class="text-sm text-gray-500 mb-1">
+              <span class="font-medium">Brand:</span> {{ product.brand }}
+            </p>
+            <p class="text-sm text-gray-500 mb-1">
               <span class="font-medium">Price:</span> {{ product.price | currency:'EGP' }}
             </p>
             <p class="text-sm text-gray-500 mb-1">
@@ -44,11 +50,13 @@
           </div>
         }
       </div>
-    } @else if (selectedCategory) {
+    } @else if (selectedCatOrBrand) {
       <p class="text-center text-gray-500 mt-10">
         لا يوجد منتجات في هذه الفئة 😔
       </p>
     }
   </div>
 </div>
+
+
 
