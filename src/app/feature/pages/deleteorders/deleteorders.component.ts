@@ -28,6 +28,7 @@ export class DeleteordersComponent {
 
   loadDeletedOrders() {
     this.deletedOrders = this.deletedOrdersService.getAllDeletedOrders();
+    console.log(this.deletedOrders);
   }
 
   deletePermanently(orderId: string) {

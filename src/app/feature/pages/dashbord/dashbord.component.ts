@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-dashbord',
   standalone: true,
-  imports: [ DecimalPipe , CurrencyPipe , FormsModule],
+  imports: [ DecimalPipe  , FormsModule],
   templateUrl: './dashbord.component.html',
   styleUrl: './dashbord.component.scss'
 })
@@ -26,12 +26,7 @@ export class DashbordComponent {
   filteredProfitPercentage = 0;
   filteredCost: number = 0;    
   topProducts: any[] = [];
-  // filteredProducts: any[] = [];
-
-  months = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر' 
-           ];
+  months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو','يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر' ];
   years = [2020, 2021 ,2022 , 2023 , 2024 ,2025 ,2026 , 2027 , 2028 , 2029 , 2030];
   selectedMonth = new Date().getMonth() + 1;
   selectedYear = new Date().getFullYear();
@@ -102,75 +97,104 @@ export class DashbordComponent {
   }
 
 // ✅ دالة تحسب أرباح الشهر المحدد من الطلبات المكتملة 
-getMonthlyRevenueAndProfit(month: number | string, year: number | string): {
-  revenue: number;
-  profit: number;
-  profitPercentage: number;
-  purchases: number; // ✅ مضافة هنا لوحدها
-} {
+  getMonthlyRevenueAndProfit(month: number | string, year: number | string): { revenue: number; profit: number; profitPercentage: number; purchases: number;} {
   const deletedOrders = this.deleteorderService.getAllDeletedOrders();
   const allProducts = this.productService.getAll();
 
-  // 🗓️ فلترة الطلبات حسب الشهر والسنة
+  // 🧩 تحويل الشهر والسنة لأرقام واضحة
+  const selectedMonth = Number(month);
+  const selectedYear = Number(year);
+
+  // ✅ فلترة الطلبات حسب الشهر والسنة
   const monthlyOrders = deletedOrders.filter(order => {
-    const [orderYear, orderMonth] = order.date.split('-');
-    return Number(orderMonth) === month && Number(orderYear) === year;
+    const [orderYear, orderMonth] = order.date.split('-').map(Number);
+    return orderMonth === selectedMonth && orderYear === selectedYear;
   });
 
-  let totalRevenue = 0;
-  let totalOrderCost = 0;
-  let totalStockPurchases = 0;
+  // ✅ فلترة المنتجات الجديدة حسب الشهر والسنة
+  const monthlyProducts = allProducts.filter((p: any) => {
+    if (!p.addedDate) return false;
+    const date = new Date(p.addedDate);
+    if (isNaN(date.getTime())) return false;
+    return (
+      date.getUTCMonth() + 1 === selectedMonth &&
+      date.getUTCFullYear() === selectedYear
+    );
+  });
 
   // 💰 حساب المبيعات والتكلفة من الطلبات
-  monthlyOrders.forEach(order => {
+  const  {totalRevenue , totalOrderCost} = this.calculateOrderRevenue(monthlyOrders);
+  const {totalCost}  = this.calculateOrderCost(deletedOrders ,selectedMonth ,selectedYear  )
+
+  // 🏪 حساب تكلفة المنتجات الجديدة في المخزون
+  const totalStockPurchases = this.calculateStockPurchases(monthlyProducts);
+  // console.log( 'المخزون' , this.calculateStockPurchases(monthlyProducts));
+
+  // 💹 حساب الربح ونسبة الربح من الطلبات فقط
+  const totalProfit = totalRevenue - totalOrderCost;
+  const profitPercentage = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+  // 🧮 إجمالي المشتريات الشهرية (اللي اتشرت سواء اتباع منها أو لسه)
+  const totalPurchases = totalCost + totalStockPurchases;
+
+  return {
+    revenue: +totalRevenue.toFixed(2),
+    profit: +totalProfit.toFixed(2),
+    profitPercentage: +profitPercentage.toFixed(2),
+    purchases: +totalPurchases.toFixed(2)
+  };
+  }
+
+
+// 📦 دالة لحساب مبيعات الطلبات
+  calculateOrderRevenue(orders: any[]): { totalRevenue: number; totalOrderCost: number } {
+  let totalRevenue = 0;
+  let totalOrderCost = 0;
+
+  orders.forEach(order => {
     order.items?.forEach((item: any) => {
-      const price = Number(item.price) || 0;
-      const cost = Number(item.Cost ?? item.cost) || 0;
-      const qty = Number(item.quantity) || 0;
+      const price = +item.price || 0;
+      const cost = +item.Cost  || 0;
+      const qty = +item.quantity || 0;
 
       totalRevenue += price * qty;
       totalOrderCost += cost * qty;
     });
   });
 
-  // 🏪 حساب المشتريات من المنتجات الجديدة في الشهر
-const monthlyProducts = allProducts.filter((p: any) => {
-  if (!p.addedDate) return false;
+  return { totalRevenue, totalOrderCost };
+  }
 
-  const date = new Date(p.addedDate);
-  if (isNaN(date.getTime())) return false; // لو التاريخ مش صالح
+  // 📦 دالة لحساب مشتريات الطلبات
+  calculateOrderCost(orders: any[], selectedMonth: number, selectedYear: number): { totalCost: number } {
+  let totalCost = 0;
 
-  const productMonth = date.getUTCMonth() + 1; // ✅ استخدم UTCMonth عشان الـ "Z"
-  const productYear = date.getUTCFullYear();
-  return productMonth === Number(month) && productYear === Number(year);
-});
+  orders.forEach(order => {
+    order.items?.forEach((item: any) => {
+      const itemDate = new Date(item.addedDate);
+      const itemMonth = itemDate.getMonth() + 1; // getMonth بيرجع من 0 → 11
+      const itemYear = itemDate.getFullYear();
 
-
-
-  monthlyProducts.forEach((p: any) => {
-    const productCost = Number(p.Cost) || 0;
-    const productQty = Number(p.quantity) || 0;
-    totalStockPurchases += productCost * productQty;
+      if (itemMonth === selectedMonth && itemYear === selectedYear) {
+        const cost = +item.Cost || 0;
+        const qty = +item.quantity || 0;
+        totalCost += cost * qty;
+      }
+    });
   });
-  console.log( 'totalStockPurchases', totalStockPurchases)
+  return { totalCost };
+  }
 
-  // 💹 هنا هنحسب الربح بناءً على الطلبات فقط (من غير المشتريات)
-  const totalProfit = totalRevenue - totalOrderCost;
-  const profitPercentage = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+// 🏬 دالة لحساب تكلفة المشتريات من المخزون
+  calculateStockPurchases(products: any[]): number {
+  return products.reduce((sum, p: any) => {
+    const cost = +p.Cost  || 0;
+    const qty = +p.quantity || 0;
+    return sum + (cost * qty);
+  }, 0);
+  }
 
-  return {
-    revenue: +totalRevenue.toFixed(2),
-    profit: +totalProfit.toFixed(2),
-    profitPercentage: +profitPercentage.toFixed(2),
-    purchases: +totalStockPurchases.toFixed(2) // ✅ رقم منفصل
-  };
-}
-
-
-
- filterByMonth() {
-  // console.log(this.selectedMonth, this.selectedYear);
-
+  filterByMonth() {
   const result = this.getMonthlyRevenueAndProfit(
     Number(this.selectedMonth),
     Number(this.selectedYear)
@@ -180,22 +204,7 @@ const monthlyProducts = allProducts.filter((p: any) => {
   this.filteredCost = result.purchases;
   this.filteredProfit = result.profit;
   this.filteredProfitPercentage = result.profitPercentage;
-}
-
-// filterByMonthT(): void {
-//   const allProducts = this.productService.getAll();
-
-//   this.filteredProducts = allProducts.filter(p => {
-//     const date = new Date(p.addedDate);
-//     const productMonth = (date.getMonth() + 1).toString().padStart(2, '0');
-//     const productYear = date.getFullYear().toString();
-
-//     return (
-//       (this.selectedMonth ? productMonth === this.selectedMonth : true) &&
-//       (this.selectedYear ? productYear === this.selectedYear : true)
-//     );
-//   });
-// }
+  }
 
   // نسبة ارباح المبيعات
   getDeletedOrdersProfitPercentage(): number {
@@ -223,6 +232,7 @@ const monthlyProducts = allProducts.filter((p: any) => {
 
 
 
+  
 
 
 
