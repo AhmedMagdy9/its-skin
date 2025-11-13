@@ -39,10 +39,53 @@
       </a>
     </nav>
 
+    <!-- Backup Button && Restore Input -->
+    <div class="flex flex-col sm:flex-row items-start gap-4 rtl:space-x-reverse p-4  rounded-xl shadow-sm">
+
+     <!-- Backup Button -->
+     <button
+    (click)="backupData()"
+    class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl text-sm font-semibold shadow-lg
+           bg-gradient-to-r from-[#7c3aed] via-[#c084fc] to-[#fb7185] text-white
+           hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150
+           focus:outline-none focus:ring-4 focus:ring-purple-200"
+    title="حفظ نسخة احتياطية">
+    💾 Backup Data
+     </button>
+
+     <!-- Restore Input -->
+     <div class="relative flex flex-col">
+    <input
+      id="restoreInput"
+      type="file"
+      (change)="restoreData($event)"
+      accept=".json"
+      class="sr-only"
+    />
+
+    <label for="restoreInput"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl   bg-black text-white
+                  backdrop-blur-sm text-sm font-medium shadow-sm cursor-pointer
+                 opacity-50 hover:opacity-100 hover:shadow-md transition-all duration-300">
+     📁 Restore from File
+    </label>
+
+   @if (selectedFileName()) {
+      <!-- File name preview باستخدام @if -->
+    <span  class="mt-2 text-xs text-gray-600 text-right">
+      الملف المختار: <span class="font-medium">{{ selectedFileName() }}</span>
+    </span>
+   }
+    </div>
+
+    </div>
+
+    
     <!-- Footer -->
     <div class="p-2 text-center border-t border-white/20 mt-6 text-sm">
       its skin © 2025
     </div>
+    
   </aside>
 
   <!-- Navbar Mobile -->
@@ -61,6 +104,44 @@
     <a routerLinkActive="bg-white/15" routerLink="/addproduct" class="block p-2 hover:bg-white/15 transition">➕ Add Product</a>
     <a routerLinkActive="bg-white/15" routerLink="/categorise" class="block p-2 hover:bg-white/15 transition">🗂️ Categories</a>
     <a routerLinkActive="bg-white/15" routerLink="/dashbord" class="block p-2 hover:bg-white/15 transition">📊 Dashboard</a>
+    <!-- Backup Button && Restore Input -->
+    <div class="flex flex-col sm:flex-row items-start gap-4 rtl:space-x-reverse p-4  rounded-xl shadow-sm">
+    <!-- Backup Button -->
+    <button
+    (click)="backupData()"
+    class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl text-sm font-semibold shadow-lg
+           bg-gradient-to-r from-[#7c3aed] via-[#c084fc] to-[#fb7185] text-white
+           hover:scale-[1.02] active:scale-[0.98] transition-transform duration-150
+           focus:outline-none focus:ring-4 focus:ring-purple-200"
+    title="حفظ نسخة احتياطية">
+    💾 Backup Data
+    </button>
+    <!-- Restore Input -->
+    <div class="relative flex flex-col">
+    <input
+      id="restoreInput"
+      type="file"
+      (change)="restoreData($event)"
+      accept=".json"
+      class="sr-only"
+    />
+
+    <label for="restoreInput"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl   bg-black text-white
+                  backdrop-blur-sm text-sm font-medium shadow-sm cursor-pointer
+                 opacity-70 hover:opacity-100 hover:shadow-md transition-all duration-500">
+     📁 Restore from File
+    </label>
+
+   @if (selectedFileName()) {
+      <!-- File name preview باستخدام @if -->
+    <span  class="mt-2 text-xs text-gray-600 text-right">
+      الملف المختار: <span class="font-medium">{{ selectedFileName() }}</span>
+    </span>
+   }
+    </div>
+    </div>
+
   </div>
 }
 </div>

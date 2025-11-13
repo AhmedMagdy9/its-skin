@@ -70,7 +70,7 @@ export class HomeComponent {
   if (diffInDays < 0) return 'text-red-600'; // منتهي
   else if (diffInDays <= 60) return 'text-yellow-600'; // باقي أقل من شهرين
   else return 'text-green-600'; // سليم
- }
+  }
 
  addToCart(product: any) {
   // ✅ 1. أضف المنتج للكارت
@@ -92,8 +92,7 @@ export class HomeComponent {
   this.loadProducts();
 
  
- }
-
+  }
 
   // بدء التعديل على منتج معين
   startEdit(product: Product) {

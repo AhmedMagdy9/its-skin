@@ -1,0 +1,16 @@
+
+
+
+tbody tr {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+tbody tr:hover {
+  
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.08);
+}
+
+tbody:has(tr:hover) tr:not(:hover) {
+  filter: blur(1px);
+  opacity: 0.6;
+}
