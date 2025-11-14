@@ -33,8 +33,19 @@
           @for (product of products(); track product.id) {
            @if (product.name.toLocaleLowerCase().includes(searchTerm().toLocaleLowerCase())) {
             <tr class="border-t  hover:bg-rose-50 transition">
-              <td class="py-3 px-4 font-medium text-rose-700">{{ product.name }}</td>
+            <td class="py-3 px-4 font-medium text-rose-700">
+               <div class="relative group w-fit">
+              <!-- النص الأساسي -->
+              <span class="line-clamp-1 max-w-40 block">
+              {{ product.name.slice(0, 15) }}...
+              </span>
 
+              <!-- Tooltip -->
+              <div class="absolute -top-8 left-1/4 -translate-x-1/5 bg-gray-800 text-white text-xs px-5 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow">
+              {{ product.name }}
+              </div>
+              </div>
+            </td>
               <td class="py-3 px-4">
                 <span
                   class="text-sm px-2 py-1 rounded-full"
