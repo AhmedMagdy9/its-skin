@@ -1,14 +1,19 @@
-<!-- Wrapper Sidebar + Mobile Navbar -->
+
+
+
+
+  <!-- Wrapper Sidebar + Mobile Navbar -->
 <div class="flex fixed w-full lg:w-64 z-10 flex-col lg:flex-row">
 
   <!-- Sidebar للـ desktop -->
-  <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-gray-600 to-rose-400 text-white h-screen p-4 shadow-lg transition-all duration-300">
-    
+  <aside class="hidden  lg:flex flex-col w-64 bg-gradient-to-b from-gray-600 to-rose-400 text-white h-screen p-4 shadow-lg transition-all duration-300">
+
     <!-- Logo -->
     <div class="p-4 text-center border-b border-white/20 mb-6">
       <span class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 via-pink-400 to-rose-200 drop-shadow-md">
            It's Skin
       </span>
+      
     </div>
 
     <!-- Links -->
@@ -39,29 +44,7 @@
       </a>
     </nav>
 
-    <!-- Backup Button && Restore Input -->
-    <div class="flex flex-col sm:flex-row items-start gap-4 rtl:space-x-reverse p-4  rounded-xl shadow-sm">
-     <!-- Backup Button -->
-     <button (click)="backupData()" class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl text-sm font-semibold shadow-lg  bg-gradient-to-r from-[#7c3aed] via-[#c084fc] to-[#fb7185] text-white  hover:scale-[1.05] active:scale-[0.98] transition-transform duration-150 focus:outline-none focus:ring-4 focus:ring-purple-200"
-      title="حفظ نسخة احتياطية">
-      💾 Backup Data
-     </button>
-
-     <!-- Restore Input -->
-   <div class="relative flex flex-col">
-    <input  id="restoreInput"  type="file" (change)="restoreData($event)" accept=".json" class="sr-only"/>
-    <label for="restoreInput" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl   bg-main text-gray-900  backdrop-blur-sm text-sm font-medium shadow-sm cursor-pointer hover:scale-[1.05] active:scale-[0.98] transition-transform duration-150 focus:outline-none focus:ring-4 focus:ring-purple-200">
-     📁 Restore from File
-    </label>
-   @if (selectedFileName()) {
-      <!-- File name preview باستخدام @if -->
-    <span  class="mt-2 text-xs text-gray-600 text-right">
-      الملف المختار: <span class="font-medium">{{ selectedFileName() }}</span>
-    </span>
-   }
-  </div>
-
-    </div>
+  
 
     
     <!-- Footer -->
@@ -87,28 +70,6 @@
     <a routerLinkActive="bg-white/15" routerLink="/addproduct" class="block p-2 hover:bg-white/15 transition">➕ Add Product</a>
     <a routerLinkActive="bg-white/15" routerLink="/categorise" class="block p-2 hover:bg-white/15 transition">🗂️ Categories</a>
     <a routerLinkActive="bg-white/15" routerLink="/dashbord" class="block p-2 hover:bg-white/15 transition">📊 Dashboard</a>
-    <!-- Backup Button && Restore Input -->
-    <div class="flex flex-col sm:flex-row items-start gap-4 rtl:space-x-reverse p-4  rounded-xl shadow-sm">
-    <!-- Backup Button -->
-    <button (click)="backupData()" class="inline-flex items-center gap-2 px-5 py-2 rounded-2xl text-sm font-semibold shadow-lg bg-gradient-to-r from-[#7c3aed] via-[#c084fc] to-[#fb7185] text-white hover:scale-[1.05] active:scale-[0.98] transition-transform duration-150 focus:outline-none focus:ring-4 focus:ring-purple-200"
-    title="حفظ نسخة احتياطية">
-    💾 Backup Data
-    </button>
-    <!-- Restore Input -->
-    <div class="relative flex flex-col">
-    <input id="restoreInput" type="file" (change)="restoreData($event)" accept=".json" class="sr-only"/>
-    <label for="restoreInput" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl   bg-main text-gray-900  backdrop-blur-sm text-sm font-medium shadow-sm cursor-pointer  hover:scale-[1.05] active:scale-[0.98] transition-transform duration-150 focus:outline-none focus:ring-4 focus:ring-purple-200">
-     📁 Restore from File
-    </label>
-
-   @if (selectedFileName()) {
-      <!-- File name preview باستخدام @if -->
-    <span  class="mt-2 text-xs text-gray-600 text-right">
-      الملف المختار: <span class="font-medium">{{ selectedFileName() }}</span>
-    </span>
-   }
-    </div>
-    </div>
 
   </div>
 }

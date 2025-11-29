@@ -55,13 +55,15 @@
           </div>
         }
       </div>
-    } @else if (selectedCatOrBrand()) {
+    } @else if (filteredProducts().length === 0) {
       <p class="text-center text-gray-500 mt-10">
-        لا يوجد منتجات في هذه الفئة 😔
+        لا يوجد منتجات  
       </p>
     }
   </div>
 </div>
+
+ 
 
 
 

@@ -1,31 +1,38 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Expense } from '../../../shared/interfaces/Expenses';
+import { environment } from '../../../shared/envairoment/env';
+import { HttpClient } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExpensesService {
 
-   private storageKey = 'expenses';
+  private readonly baseUrl = environment.apiUrl + '/expenses';
+  private http = inject(HttpClient);
 
-  getAllExpenses(): Expense[] {
-    return JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+  // 🌟 جلب كل المصاريف
+  getAllExpenses(): Observable<Expense[]> {
+    return this.http.get<Expense[]>(this.baseUrl).pipe(
+      map(expenses => expenses.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+    );
   }
 
-  addExpense(expense: Expense): void {
-    const expenses = this.getAllExpenses();
-    expenses.push(expense);
-    localStorage.setItem(this.storageKey, JSON.stringify(expenses));
+  // 🌟 جلب المصاريف لشهر محدد
+  getExpensesByMonth(month: string): Observable<Expense[]> {
+    return this.getAllExpenses().pipe(
+      map(expenses => expenses.filter(e => e.date.startsWith(month)))
+    );
   }
 
-getExpensesByMonth(month: string): Expense[] {
-  return this.getAllExpenses().filter(e => e.date.startsWith(month));
-}
+  // 🌟 إضافة مصروف جديد
+  addExpense(expense: Expense): Observable<Expense> {
+    return this.http.post<Expense>(this.baseUrl, expense);
+  }
 
-
-
-  deleteExpense(id: string): void {
-    const expenses = this.getAllExpenses().filter(e => e.id !== id);
-    localStorage.setItem(this.storageKey, JSON.stringify(expenses));
+  // 🌟 حذف مصروف
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

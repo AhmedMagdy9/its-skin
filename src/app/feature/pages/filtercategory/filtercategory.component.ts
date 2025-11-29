@@ -15,54 +15,57 @@ import { CartService } from '../../../core/services/cart/cart.service';
 })
 export class FiltercategoryComponent {
 
-  categories:WritableSignal<string[]> = signal <string[]>([])
-  brands:WritableSignal<string[]> = signal <string[]>([])
-  selectedCatOrBrand:WritableSignal<string> =signal('');
-  filteredProducts:WritableSignal<Product[]> = signal<Product[]>([]);
-  private platformid = inject(PLATFORM_ID)
-  private cartService = inject(CartService);
-  private notyf = inject(NotyfService)
+  categories: WritableSignal<string[]> = signal([]);
+brands: WritableSignal<string[]> = signal([]);
+selectedCatOrBrand: WritableSignal<string> = signal('');
+filteredProducts: WritableSignal<Product[]> = signal([]);
+private platformid = inject(PLATFORM_ID)
+private cartService = inject(CartService);
+private notyf = inject(NotyfService)
 
-  constructor(private productService: ProductService) {}
+constructor(private productService: ProductService) {}
 
-
-  ngOnInit(): void {
-   if (isPlatformBrowser(this.platformid)) {
-     // ✅ استرجاع الفئات من كل المنتجات 
-    const allProducts = this.productService.getAll();
-    this.categories.set([...new Set(allProducts.map(p => p.category))]) ;
-     // ✅ استرجاع الشركات من كل المنتجات 
-    const allProductsBrand = this.productService.getAll();
-    this.brands.set([...new Set(allProductsBrand.map(p => p.brand))]);
-    
-   }
+ngOnInit(): void {
+  if (isPlatformBrowser(this.platformid)) {
+    this.loadCategoriesAndBrands();
   }
+}
 
-  filterProducts(filterWord: string): void {
-  const allProducts = this.productService.getAll();
-  this.filteredProducts.set(allProducts.filter(p => p.category === filterWord || p.brand === filterWord));
-  }
+loadCategoriesAndBrands() {
+  this.productService.getAll().subscribe({
+    next: (products) => {
+      this.categories.set([...new Set(products.map(p => p.category))]);
+      this.brands.set([...new Set(products.map(p => p.brand))]);
+    },
+    error: (err) => console.error(err)
+  });
+}
 
+filterProducts(filterWord: string): void {
+  this.productService.getAll().subscribe({
+    next: (products) => {
+      this.filteredProducts.set(
+        products.filter(p => p.category === filterWord || p.brand === filterWord)
+      );
+    },
+    error: (err) => console.error(err)
+  });
+}
 
+addToCart(product: Product): void {
+    this.cartService.addToCart(product, 1).subscribe({
+      next: () => {
+        this.notyf.success('Product added successfully');
+        const targetProduct = this.filteredProducts().filter(p => p.id === product.id)[0];
+        targetProduct.quantity -= 1;
+        if (targetProduct.quantity === 0) {
+          this.productService.delete(product.id).subscribe();
+        }
+      },
+      error: (err) => {
+        this.notyf.error(err.message);
+      }
+    });
+}
 
-
-  addToCart(product: any) {
-  // ✅ 1. أضف المنتج للكارت
- this.cartService.addToCart(product);
-
-  // ✅ 2. قلل الكمية في السيرفس
-  this.productService.decreaseQuantity(product.id);
-
-  // ✅ 3. هات النسخة الجديدة من المنتج بعد التحديث
-  const updatedProduct = this.productService.getAll().find((p: any) => p.id === product.id);
-
-  // ✅ 4. لو الكمية وصلت صفر احذفه
-  if (updatedProduct && updatedProduct.quantity === 0) {
-     this.productService.delete(product.id);
-  }
-
-  this.notyf.success('Product added successfully')
-
- 
-  }
 }

@@ -1,45 +1,47 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, switchMap } from 'rxjs';
 import { Order } from '../../shared/interfaces/order';
+import { environment } from '../../shared/envairoment/env';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdersService {
 
- private ordersKey = 'allOrders';
+ private ordersUrl = environment.apiUrl + '/allOrders';
 
+  constructor(private http: HttpClient) {}
 
-  // ✅ رجّع كل الطلبات
-  getAllOrders(): Order[] {
-    return JSON.parse(localStorage.getItem(this.ordersKey) || '[]');
+  // 🌟 جلب كل الطلبات
+  getAllOrders(): Observable<Order[]> {
+    return this.http.get<Order[]>(this.ordersUrl);
   }
 
-  // ✅ أضف طلب جديد
-  addOrder(order: Order) {
-    const orders = this.getAllOrders();
-    orders.push(order);
-    localStorage.setItem(this.ordersKey, JSON.stringify(orders));
+  // 🌟 أضف طلب جديد
+  addOrder(order: Order): Observable<Order> {
+    return this.http.post<Order>(this.ordersUrl, order);
   }
 
-  // ✅ امسح طلب
-  deleteOrder(id: string) {
-    const updated = this.getAllOrders().filter(o => o.id !== id);
-    localStorage.setItem(this.ordersKey, JSON.stringify(updated));
+  // 🌟 حذف طلب
+  deleteOrder(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.ordersUrl}/${id}`);
   }
 
-  // ✅ حدّث طلب (لو هتضيف الحالة مثلاً)
-  updateOrder(updatedOrder: Order) {
-    const orders = this.getAllOrders().map(o => o.id === updatedOrder.id ? updatedOrder : o);
-    localStorage.setItem(this.ordersKey, JSON.stringify(orders));
+  // 🌟 تحديث طلب بالكامل
+  updateOrder(updatedOrder: Order): Observable<Order> {
+    return this.http.put<Order>(`${this.ordersUrl}/${updatedOrder.id}`, updatedOrder);
   }
 
-  // ✅ تحديث الحالة فقط (لو حبيت تستخدمها في المستقبل)
-  updateOrderStatus(orderId: string, newStatus: 'pending' | 'completed') {
-    const orders = this.getAllOrders();
-    const orderIndex = orders.findIndex(o => o.id === orderId);
-    if (orderIndex !== -1) {
-      orders[orderIndex].status = newStatus;
-      localStorage.setItem(this.ordersKey, JSON.stringify(orders));
-    }
+  // 🌟 تحديث حالة الطلب فقط
+  updateOrderStatus(orderId: string, newStatus: 'pending' | 'completed'): Observable<Order> {
+    return this.getAllOrders().pipe(
+      map(orders => orders.find(o => o.id === orderId)),
+      map(order => {
+        if (!order) throw new Error('Order not found');
+        return { ...order, status: newStatus };
+      }),
+      switchMap(updated => this.updateOrder(updated))
+    );
   }
 }

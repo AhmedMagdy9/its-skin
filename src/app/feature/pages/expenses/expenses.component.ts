@@ -14,47 +14,71 @@ import { NotyfService } from '../../../core/services/notyf/notyf.service';
 })
 export class ExpensesComponent {
 
-  filteredExpenses:WritableSignal<Expense[]> = signal<Expense[]>([]);
-  private platformid = inject(PLATFORM_ID)
-  private notyfService = inject(NotyfService)
-   expenseForm: FormGroup = new FormGroup({
-      title: new FormControl('', Validators.required),
-      amount: new FormControl('', [Validators.required, Validators.min(1)]),
-      date: new FormControl('', Validators.required),
-      details: new FormControl('')
+filteredExpenses: WritableSignal<Expense[]> = signal<Expense[]>([]);
+private platformid = inject(PLATFORM_ID)
+private notyfService = inject(NotyfService)
+
+expenseForm: FormGroup = new FormGroup({
+  title: new FormControl('', Validators.required),
+  amount: new FormControl('', [Validators.required, Validators.min(1)]),
+  date: new FormControl('', Validators.required),
+  details: new FormControl('')
+});
+
+constructor(private expensesService: ExpensesService) {}
+
+ngOnInit(): void {
+  if (isPlatformBrowser(this.platformid)) {
+    this.loadExpenses();
+  }
+}
+
+// 🌟 تحميل كل المصاريف
+loadExpenses(): void {
+  this.expensesService.getAllExpenses().subscribe({
+    next: (res) => this.filteredExpenses.set(res),
+    error: (err) => console.error(err)
+  });
+}
+
+// 🌟 إضافة مصروف
+onAddExpense(): void {
+  if (this.expenseForm.valid) {
+    const newExpense: Expense = {
+      ...this.expenseForm.value,
+      id: Date.now().toString()
+    };
+
+    this.expensesService.addExpense(newExpense).subscribe({
+      next: (res) => {
+        this.notyfService.success('Expense added successfully.');
+        this.loadExpenses();
+        this.expenseForm.reset();
+      },
+      error: (err) => console.error(err)
     });
-
-  constructor(private expensesService: ExpensesService) {}
-
-  ngOnInit(): void {
-   if (isPlatformBrowser(this.platformid)) {
-    //  this.filteredExpenses = this.expensesService.getAllExpenses();
-    this.filteredExpenses.set(this.expensesService.getAllExpenses());
-   }
-   
   }
+}
 
-  onAddExpense(): void {
-    if (this.expenseForm.valid) {
-      const newExpense: Expense = this.expenseForm.value;
-      console.log(this.expenseForm.value);
-      newExpense.id = Date.now().toString();
-      this.expensesService.addExpense(newExpense);
-      this.filteredExpenses.set(this.expensesService.getAllExpenses());
-      this.notyfService.success('Expense added successfully.');
-      this.expenseForm.reset();
-    }
-  }
- // ✅ فلترة حسب الشهر
-  filterByMonth(event: any) {
-  const month = event.target.value; // مثلاً "2025-11"
-  this.filteredExpenses.set(this.expensesService.getExpensesByMonth(month));
-  }
+// 🌟 فلترة حسب الشهر
+filterByMonth(event: any): void {
+  const month = event.target.value; // مثال: "2025-11"
+  this.expensesService.getExpensesByMonth(month).subscribe({
+    next: (res) => this.filteredExpenses.set(res),
+    error: (err) => console.error(err)
+  });
+}
 
+// 🌟 حذف مصروف
+deleteExpense(id: string): void {
+  this.expensesService.deleteExpense(id).subscribe({
+    next: () => {
+      this.notyfService.error('Expense deleted successfully.');
+      this.loadExpenses();
+    },
+    error: (err) => console.error(err)
+  });
+}
 
-  deleteExpense(id: string): void {
-    this.expensesService.deleteExpense(id);
-    this.notyfService.error('Expense deleted successfully.');
-    this.filteredExpenses.set(this.expensesService.getAllExpenses());
-  }
+  
 }

@@ -11,15 +11,14 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.0",
+    "@angular/animations": "^18.0.0 || ^19.0.0",
+    "@angular/cdk": "^18.2.14",
     "@angular/common": "^18.2.0",
-    "@angular/compiler": "^18.2.0",
-    "@angular/core": "^18.2.0",
-    "@angular/forms": "^18.2.0",
+    "@angular/forms": "^18.0.0 || ^19.0.0",
+    "@angular/material": "^18.2.14",
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/platform-server": "^18.2.0",
-    "@angular/router": "^18.2.0",
     "@angular/ssr": "^18.2.21",
     "@tailwindcss/node": "4.1.16",
     "@tailwindcss/postcss": "4.1.16",
@@ -34,8 +33,13 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.21",
+    "@angular/animations": "^18.2.14",
     "@angular/cli": "^18.2.21",
+    "@angular/compiler": "^18.2.14",
     "@angular/compiler-cli": "^18.2.0",
+    "@angular/core": "^18.2.14",
+    "@angular/forms": "^18.2.14",
+    "@angular/router": "^18.2.14",
     "@types/express": "^4.17.17",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^18.18.0",
@@ -45,6 +49,6 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.5.2"
+    "typescript": "^5.2.2"
   }
 }

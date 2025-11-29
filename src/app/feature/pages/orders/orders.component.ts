@@ -6,6 +6,7 @@ import { DeleteorderService } from '../../../core/services/deleteorder/deleteord
 import { NotyfService } from '../../../core/services/notyf/notyf.service';
 import { ProductService } from '../../../core/services/product service/product.service';
 import { Product } from '../../../shared/interfaces/product';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -15,14 +16,14 @@ import { Product } from '../../../shared/interfaces/product';
   styleUrl: './orders.component.scss'
 })
 export class OrdersComponent {
-  allOrders:WritableSignal<Order[]> = signal<Order[]>([]);
+ 
+  allOrders: WritableSignal<Order[]> = signal<Order[]>([]);
   activeTab: 'pending' | 'completed' = 'pending';
-  private platformid = inject(PLATFORM_ID)
-  private deletedOrdersService = inject(DeleteorderService)
-  private productService = inject(ProductService)
-   private notyf = inject(NotyfService)
-
-  constructor(private orderService: OrdersService) {}
+  private platformid = inject(PLATFORM_ID);
+  private deletedOrdersService = inject(DeleteorderService);
+  private productService = inject(ProductService);
+  private notyf = inject(NotyfService);
+  private orderService = inject(OrdersService);
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformid)) {
@@ -30,9 +31,13 @@ export class OrdersComponent {
     }
   }
 
-  loadOrders() {
-    this.allOrders.set(this.orderService.getAllOrders());
-  }
+loadOrders() {
+  this.orderService.getAllOrders().subscribe(orders => {
+    this.allOrders.set(orders);
+    console.log('allOrders', this.allOrders()); // هنا هتطبع البيانات صح
+  });
+}
+
 
   get pendingOrders() {
     return this.allOrders().filter(o => o.status === 'pending');
@@ -42,66 +47,64 @@ export class OrdersComponent {
     return this.allOrders().filter(o => o.status === 'completed');
   }
 
-  markAsCompleted(id: string) {
-    this.orderService.updateOrderStatus(id, 'completed');
-   this.notyf.success('order Delevary successfully')
-    this.loadOrders();
+  markAsCompleted(order: Order) {
+    this.orderService.updateOrderStatus(order.id, 'completed').subscribe(() => {
+      this.notyf.success('Order marked as delivered successfully');
+      this.loadOrders();
+    });
   }
 
-  complated(order: Order  ) {
-
-    this.deletedOrdersService.addDeletedOrder(order);
-
-    this.orderService.deleteOrder(order.id);
-    this.notyf.success('order completed successfully')
-    this.loadOrders();
-  }
-
-deleteOrder(order: Order) {
-  const products = order.items;
-  const allProducts: Product[] = this.productService.getAll(); // كل المنتجات الحالية في المخزون
-
-   products.forEach((p: any) => {
-    const existingProduct = allProducts.find(prod => prod.id === p.id);
-
-    if (existingProduct) {
-      // ✅ المنتج موجود: رجّع الكمية
-      existingProduct.quantity += p.quantity;
-    } else {
-      // ✅ المنتج مش موجود: أضفه كـ Product جديد بنفس القيم
-      const newProduct: Product = {
-        id: p.id,
-        name: p.name || 'Unnamed Product',
-        brand: p.brand || 'Unknown',
-        category: p.category || 'Uncategorized',
-        quantity: p.quantity || 0,
-        price: +p.price || 0,
-        Cost: +p.Cost || 0,
-        expiryDate: p.expiryDate || '',
-        addedDate: new Date().toISOString(),
-        description: p.description || '',
-        imageUrl: p.imageUrl || '',
-        lowStockThreshold: p.lowStockThreshold || 0,
-        isFavorite: p.isFavorite || false,
-      };
-
-      allProducts.push(newProduct);
-    }
+complated(order: Order) {
+  this.deletedOrdersService.addDeletedOrder(order).subscribe(() => {
+    this.orderService.deleteOrder(order.id).subscribe(() => {
+      this.notyf.success('Order completed successfully');
+      this.loadOrders();
+    });
   });
-
-  // ✅ خزّن التغييرات في المخزون بعد التعديل
-  this.productService.outSaveProducts(allProducts);
-
-  // ✅ امسح الأوردر
-  this.orderService.deleteOrder(order.id);
-
-  // ✅ إشعار نجاح
-  this.notyf.success('Order deleted successfully, stock updated.');
-
-  // ✅ تحديث القائمة
-  this.loadOrders();
 }
 
+  deleteOrder(order: Order) {
+    const products = order.items;
+
+    // تحديث كل منتجات المخزون عند حذف الأوردر
+    const updates$ = products.map(p =>
+      this.productService.getById(p.id).subscribe({
+        next: stockProduct => {
+          if (stockProduct) {
+            // المنتج موجود في المخزون → زود الكمية
+            const updated = { ...stockProduct, quantity: stockProduct.quantity + p.quantity };
+            this.productService.update(stockProduct.id, updated).subscribe();
+          } else {
+            // المنتج مش موجود → ضيفه كمنتج جديد
+            const newProduct: Product = {
+              id: p.id,
+              name: p.name || 'Unnamed Product',
+              brand: p.brand || 'Unknown',
+              category: p.category || 'Uncategorized',
+              quantity: p.quantity || 0,
+              price: +p.price || 0,
+              Cost: +p.Cost || 0,
+              expiryDate: p.expiryDate || '',
+              addedDate: new Date().toISOString(),
+              description: p.description || '',
+              imageUrl: p.imageUrl || '',
+              lowStockThreshold: p.lowStockThreshold || 0,
+              isFavorite: p.isFavorite || false,
+            };
+            this.productService.add(newProduct).subscribe();
+          }
+        }
+      })
+    );
+
+    // بعد تحديث كل المنتجات، احذف الأوردر
+    forkJoin(updates$).subscribe(() => {
+      this.orderService.deleteOrder(order.id).subscribe(() => {
+        this.notyf.success('Order deleted successfully, stock updated.');
+        this.loadOrders();
+      });
+    });
+  }
 
 
 }

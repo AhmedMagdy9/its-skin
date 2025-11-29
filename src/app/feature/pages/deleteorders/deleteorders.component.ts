@@ -14,28 +14,37 @@ import { NotyfService } from '../../../core/services/notyf/notyf.service';
 export class DeleteordersComponent {
 
 
- deletedOrders:WritableSignal<Order[]> = signal<Order[]>([]);
- private platformid = inject(PLATFORM_ID)
- private notyf = inject(NotyfService)
- private deletedOrdersService = inject(DeleteorderService)
+  deletedOrders: WritableSignal<Order[]> = signal<Order[]>([]);
+  private platformid = inject(PLATFORM_ID);
+  private notyf = inject(NotyfService);
+  private deletedOrdersService = inject(DeleteorderService);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformid)) {
-        this.loadDeletedOrders(); 
-    }
-  
-  }
-
-  loadDeletedOrders() {
-    this.deletedOrders.set(this.deletedOrdersService.getAllDeletedOrders());
-  }
-
-  deletePermanently(orderId: string) {
-    if (confirm('Are you sure you want to delete this order permanently?')) {
-      this.deletedOrdersService.deleteDeletedOrder(orderId);
-      this.notyf.success('order Deleted successfully')
       this.loadDeletedOrders();
     }
+  }
+loadDeletedOrders() {
+  this.deletedOrdersService.getAllDeletedOrders().subscribe({
+    next: (orders) => {
+      this.deletedOrders.set(orders);
+      console.log('deletedOrders', this.deletedOrders());
+    },
+    error: (err) => this.notyf.error('Failed to load deleted orders')
+  });
+}
+
+
+  deletePermanently(orderId: string) {
+    if (!confirm('Are you sure you want to delete this order permanently?')) return;
+
+    this.deletedOrdersService.deleteDeletedOrder(orderId).subscribe({
+      next: () => {
+        this.notyf.success('Order deleted successfully');
+        this.loadDeletedOrders(); // حدث القائمة بعد الحذف
+      },
+      error: (err) => this.notyf.error('Failed to delete order')
+    });
   }
 
 }

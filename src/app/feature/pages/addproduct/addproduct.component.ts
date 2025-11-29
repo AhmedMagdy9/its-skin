@@ -43,7 +43,7 @@ export class AddproductComponent implements OnInit {
       this.notyf.success('Product added successfully')
       this.productForm.reset();
       // بعدين نحفظه في localStorage أو نضيفه للـ service
-      this.productService.add(newProduct)
+      this.productService.add(newProduct).subscribe();
     } else {
       this.notyf.error('⚠️ Form is invalid')
     }

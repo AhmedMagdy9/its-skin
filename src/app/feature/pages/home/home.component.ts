@@ -1,24 +1,37 @@
-import { Component, inject, PLATFORM_ID, signal, WritableSignal } from '@angular/core';
+import { Component, effect, inject, OnDestroy, signal, ViewChild, WritableSignal, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { Product } from '../../../shared/interfaces/product';
 import { ProductService } from '../../../core/services/product service/product.service';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { CartService } from '../../../core/services/cart/cart.service';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NotyfService } from '../../../core/services/notyf/notyf.service';
-import { ExpensesComponent } from "../expenses/expenses.component";
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { A11yModule } from "@angular/cdk/a11y";
+import { Subscription } from 'rxjs';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, MatTableModule, MatPaginatorModule, MatSortModule, MatFormFieldModule, MatInputModule, A11yModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnDestroy  {
 
-  private platformid = inject(PLATFORM_ID)
+  // json-server --watch db.json --port 3000
+
+
+ private subscription = new Subscription()
   private cartService = inject(CartService)
   private notyf = inject(NotyfService)
+  private router = inject(Router)
   private productService = inject(ProductService)
   products:WritableSignal<Product[]> = signal<Product[]>([]);
   categories:WritableSignal<string[]> = signal <string[]>([])
@@ -31,94 +44,120 @@ export class HomeComponent {
      quantity: new FormControl(0, [Validators.required, Validators.min(1)]),
      price: new FormControl<number | null>(null, [Validators.min(1)]),
      Cost: new FormControl<number | null>(null, [Validators.min(1)]),
+     expiryDate: new FormControl<string | null>(null),
      lowStockThreshold: new FormControl<number | null>(null),
      description: new FormControl(''),
    });
 
-  ngOnInit(): void {
-   if (isPlatformBrowser(this.platformid)) {
-     this.loadProducts();
-     this.categories.set(this.productService.categories)
-   }
-  }
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+   dataSource = new MatTableDataSource<Product>([]);
+  displayedColumns: string[] = ['name','quantity','category','expiryDate','price','Cost','settings',];
 
-  loadProducts(): void {
-    this.products.set(this.productService.getAll()) ;
-    console.log( this.products())
+  constructor() {
+    this.loadProducts();
+    effect(() => {
+    this.dataSource.data = this.products();
+   });
+
    
   }
 
- deleteProduct(id: string): void {
-    this.productService.delete(id);
-    this.loadProducts();
-    this.notyf.error('Product Deleted successfully')
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort; 
   }
 
- getExpiryColor(expiryDate: string): string {
-  const today = new Date();
-  // لو التاريخ بالشكل dd/mm/yyyy نحوله ل yyyy-mm-dd
-  if (expiryDate.includes('-')) {
-    const [day, month, year] = expiryDate.split('-');
-    expiryDate = `${year}-${month}-${day}`;
-    // console.log('بعد' ,expiryDate)
+  // تحميل المنتجات
+  loadProducts(): void {
+   let sub =  this.productService.getAll().subscribe((products) => {
+      this.products.set(products);
+      this.categories.set(this.productService.categories);
+    });
+    this.subscription.add(sub)
   }
 
-  const expiry = new Date(expiryDate);
-  const diffInTime = expiry.getTime() - today.getTime();
-  const diffInDays = Math.ceil(diffInTime / (1000 * 60 * 60 * 24));
+  // فلترة الجدول
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.dataSource.filter = filterValue;
 
-  if (diffInDays < 0) return 'text-red-600'; // منتهي
-  else if (diffInDays <= 60) return 'text-yellow-600'; // باقي أقل من شهرين
-  else return 'text-green-600'; // سليم
-  }
-
- addToCart(product: any) {
-  // ✅ 1. أضف المنتج للكارت
-  this.cartService.addToCart(product);
-
-  // ✅ 2. قلل الكمية في السيرفس
-  this.productService.decreaseQuantity(product.id);
-
-  // ✅ 3. هات النسخة الجديدة من المنتج بعد التحديث
-  const updatedProduct = this.productService.getAll().find((p: any) => p.id === product.id);
-
-  // ✅ 4. لو الكمية وصلت صفر احذفه
-  if (updatedProduct && updatedProduct.quantity === 0) {
-    this.deleteProduct(product.id);
-  }
-
-  this.notyf.success('Product added successfully')
-  // ✅ 5. حدث الليستة في الصفحة
-  this.loadProducts();
-
- 
-  }
-
-  // بدء التعديل على منتج معين
-  startEdit(product: Product) {
-    this.editingProductId.set(product.id); 
-    this.editForm.patchValue(product);
-  }
-
-  // حفظ التعديلات
-  saveEdit() {
-    if (!this.editingProductId) return;
-    console.log(this.editForm.value)
-    const index = this.products().findIndex(p => p.id === this.editingProductId());
-    if (index !== -1) {
-      this.products()[index] = { ...this.products()[index], ...this.editForm.value };
-      this.productService.outSaveProducts(this.products());
-      this.editingProductId.set(null);
-      this.editForm.reset();
-      this.loadProducts();
-      this.notyf.success('Product updated successfully')
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
   }
 
-  // إلغاء التعديل
+  // 🌟 حذف منتج
+  deleteProduct(id: string): void {
+   let sub =  this.productService.delete(id).subscribe(() => {
+      this.notyf.error('Product Deleted successfully');
+      this.loadProducts();
+    });
+    this.subscription.add(sub)
+  }
+
+  // 🌟 إضافة منتج للكارت وتحديث المخزون تلقائي
+  addToCart(product: Product): void {
+   let sub =  this.cartService.addToCart(product, 1).subscribe({
+      next: () => {
+        this.notyf.success('Product added successfully');
+        this.loadProducts(); // تحديث الكمية بعد الإضافة
+        const targetProduct = this.products().filter(p => p.id === product.id)[0];
+        targetProduct.quantity -= 1;
+        if (targetProduct.quantity === 0) {
+          this.deleteProduct(product.id);
+        }
+      },
+      error: (err) => {
+        this.notyf.error(err.message);
+      }
+    });
+    this.subscription.add(sub)
+  }
+
+  // 🌟 لون الصلاحية
+  getExpiryColor(expiryDate: string): string {
+    const today = new Date();
+    if (expiryDate.includes('-')) {
+      const [year, month, day] = expiryDate.split('-');
+      expiryDate = `${year}-${month}-${day}`;
+    }
+    const expiry = new Date(expiryDate);
+    const diffInDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays < 0) return 'text-red-600';
+    else if (diffInDays <= 60) return 'text-yellow-600';
+    else return 'text-green-600';
+  }
+
+  // 🌟 بدء التعديل
+  startEdit(product: Product) {
+    this.editingProductId.set(product.id);
+    this.editForm.patchValue(product);
+  }
+
+  // 🌟 حفظ التعديلات
+  saveEdit() {
+    const editingId = this.editingProductId();
+    if (!editingId) return; 
+    const updatedData = this.editForm.value as Product;
+  let sub =   this.productService.update(editingId, updatedData).subscribe(() => {
+      this.notyf.success('Product updated successfully');
+      this.editingProductId.set(null);
+      this.editForm.reset();
+      this.loadProducts();
+    });
+    this.subscription.add(sub)
+  }
+
+  // 🌟 إلغاء التعديل
   cancelEdit() {
     this.editingProductId.set(null);
     this.editForm.reset();
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
 }
