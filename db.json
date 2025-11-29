@@ -85,18 +85,16 @@
       "isFavorite": null
     },
     {
-      "id": "1762812511633",
       "name": "LANEIGE - Lip Sleeping Mask EX Mini [3g - EX]",
       "brand": "LANEIGE ",
       "category": "مرطب",
       "quantity": 2,
       "price": 310,
       "Cost": 203,
-      "expiryDate": "0027-09-20",
-      "addedDate": "2025-11-10T22:08:31.633Z",
-      "description": null,
+      "expiryDate": "2027-09-20",
       "lowStockThreshold": 1,
-      "isFavorite": null
+      "description": null,
+      "id": "1762812511633"
     },
     {
       "id": "1762812562831",
